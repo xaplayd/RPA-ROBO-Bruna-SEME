@@ -43,7 +43,6 @@ public class App {
 	public static void main(String[] args) {
 		criarJanelaConsole();
 
-		// Executa em background
 		SwingWorker<Void, Void> worker = new SwingWorker<>() {
 			@Override
 			protected Void doInBackground() {
@@ -107,7 +106,7 @@ public class App {
 								}
 							}
 
-							return null; // Sai do SwingWorker
+							return null;
 						}
 					}
 
@@ -131,9 +130,6 @@ public class App {
 		worker.execute();
 	}
 
-	// ==============================
-	// 🪟 JANELA DE LOGS E PROGRESSO
-	// ==============================
 	private static void criarJanelaConsole() {
 		frame = new JFrame("Processamento de Documentos");
 		frame.setSize(500, 300);
@@ -162,19 +158,19 @@ public class App {
 		frame.add(scrollPane, BorderLayout.CENTER);
 		frame.add(progressBar, BorderLayout.SOUTH);
 
-		// Redireciona System.out e System.err para JTextArea (UTF-8 safe)
+		
 		try {
 			PrintStream printStream = new PrintStream(new OutputStream() {
 				@Override
 				public void write(int b) {
-					// Converte diretamente byte em char usando ISO-8859-1
+					
 					char c = (char) (b & 0xFF);
 					SwingUtilities.invokeLater(() -> {
 						consoleArea.append(String.valueOf(c));
 						consoleArea.setCaretPosition(consoleArea.getDocument().getLength());
 					});
 				}
-			}, true, "ISO-8859-1"); // ISO-8859-1 preserva acentos no JTextArea
+			}, true, "ISO-8859-1");
 			System.setOut(printStream);
 			System.setErr(printStream);
 		} catch (Exception e) {
@@ -184,9 +180,7 @@ public class App {
 		frame.setVisible(true);
 	}
 
-	// ======================================
-	// 📁 SELEÇÃO DE ARQUIVOS E DIRETÓRIOS
-	// ======================================
+
 	public static void selecionarArquivosEDiretorios() {
 		pastaPontosOri = selecionarDiretorio("Selecione a pasta de PONTOS");
 		pastaComprovantes = selecionarDiretorio("Selecione a pasta de COMPROVANTES");
@@ -241,10 +235,6 @@ public class App {
 			return null;
 		}
 	}
-
-	// ======================================
-	// 🧩 SUAS FUNÇÕES ORIGINAIS ABAIXO
-	// ======================================
 
 	public static void renomeiaPontos() {
 
@@ -342,7 +332,7 @@ public class App {
 		 System.out.println("\n[...] Separando todos os PDFs da pasta por página!");
 
 		    try {
-		        // Pasta de origem com os PDFs
+		       
 		        File pastaOrigem = pastaPontosOri;
 		        File[] arquivos = pastaOrigem.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
 
@@ -351,13 +341,13 @@ public class App {
 		            return;
 		        }
 
-		        // Pasta destino geral
+		        
 		        File pastaDestinoGeral = new File(pastaOrigem.getAbsolutePath() + "/separados");
 		        if (!pastaDestinoGeral.exists()) {
 		            pastaDestinoGeral.mkdirs();
 		        }
 		        Integer qtd = 1;
-		        // Percorre todos os PDFs encontrados
+		        
 		        for (File arquivoPdf : arquivos) {
 		            System.out.println("\n[INFO] Processando: " + arquivoPdf.getName());
 
@@ -366,10 +356,10 @@ public class App {
 		                reader = new PdfReader(arquivoPdf.getAbsolutePath());
 		                int totalPages = reader.getNumberOfPages();
 
-		                // Cria subpasta para esse PDF
+		             
 		                String nomeBase = arquivoPdf.getName().replaceAll("(?i)\\.pdf$", "");
 		                
-		                // Separa cada página
+		                
 		                for (int i = 1; i <= totalPages; i++) {
 		                    String outputFile = pastaDestinoGeral.getAbsolutePath() + "/pg_" + qtd + ".pdf";
 
