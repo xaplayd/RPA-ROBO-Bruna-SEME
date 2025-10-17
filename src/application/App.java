@@ -11,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 import javax.swing.JFileChooser;
@@ -54,64 +53,75 @@ public class App {
 						return null;
 					}
 
-					separaPorPagina();
-					renomeiaPontos();
-					copiarArquivosCompilacao();
-					List<Colaborador> pendentesComprovantes = revisaPendentesComprovantes(listarContracheques());
-					List<Colaborador> pendentesPontos = revisaPendentesPontos(listarContracheques());
+					File arquivoCompilado = new File(pastaPontosOri.getParent(), "COMPILACAO_FINAL.PDF");
 
-					if (!pendentesComprovantes.isEmpty() || !pendentesPontos.isEmpty()) {
-						boolean compilarMesmo = perguntarCompilarComPendentes();
-						if (!compilarMesmo) {
-							System.out.println("\n[ERRO] Usuário optou por abortar a compilação.");
-							System.out.println("\n[...] Excluindo arquivos para proxima tentativa de compilação");
-							
-							File pastaSeparados = new File(pastaPontosOri.getAbsolutePath() + "/separados");
-							File pastaRenomeados = new File(pastaPontosOri.getAbsolutePath() + "/renomeados");
-							File pastaCompilacao = new File(pastaComprovantes.getParent() + "/4_COMPILACAO");
+					boolean status = true;
 
-							File[] pastas = { pastaSeparados, pastaRenomeados, pastaCompilacao };
-							for (File pasta : pastas) {
-								if (pasta.exists()) {
-									File[] arquivos = pasta.listFiles();
-									if (arquivos != null) {
-										for (File f : arquivos) {
-											f.delete();
-										}
-									}
-									pasta.delete();
-								}
-							}
-							for (File pasta : pastas) {
-								if (pasta.exists()) {
-									File[] arquivos = pasta.listFiles();
-									if (arquivos != null) {
-										for (File f : arquivos) {
-											f.delete();
-										}
-									}
-									pasta.delete();
-								}
-							}
-							if (!pendentesComprovantes.isEmpty()) {
-								System.out.println("\n\n\n[!] Comprovantes pendentes:");
-								for (Colaborador c : pendentesComprovantes) {
-									System.out.println(c.getNome() + " | " + c.getMatricula());
-								}
-							}
-							if (!pendentesPontos.isEmpty()) {
-								System.out.println("\n\n\n[!] Pontos pendentes:");
-								for (Colaborador c : pendentesPontos) {
-									System.out.println(c.getNome() + " | " + c.getMatricula());
-								}
-							}
-
-							return null;
-						}
+					if (arquivoCompilado.exists()) {
+						status = confereStatus();
 					}
 
-					juntarDocumentos();
+					if (status == true) {
+						separaPorPagina();
+						renomeiaPontos();
+						copiarArquivosCompilacao();
+						List<Colaborador> pendentesComprovantes = revisaPendentesComprovantes(listarContracheques());
+						List<Colaborador> pendentesPontos = revisaPendentesPontos(listarContracheques());
 
+						if (!pendentesComprovantes.isEmpty() || !pendentesPontos.isEmpty()) {
+							boolean compilarMesmo = perguntarCompilarComPendentes();
+							if (!compilarMesmo) {
+								System.out.println("\n[ERRO] Usuário optou por abortar a compilação.");
+								System.out.println("\n[...] Excluindo arquivos para proxima tentativa de compilação");
+
+								File pastaSeparados = new File(pastaPontosOri.getAbsolutePath() + "/separados");
+								File pastaRenomeados = new File(pastaPontosOri.getAbsolutePath() + "/renomeados");
+								File pastaCompilacao = new File(pastaComprovantes.getParent() + "/4_COMPILACAO");
+
+								File[] pastas = { pastaSeparados, pastaRenomeados, pastaCompilacao };
+								for (File pasta : pastas) {
+									if (pasta.exists()) {
+										File[] arquivos = pasta.listFiles();
+										if (arquivos != null) {
+											for (File f : arquivos) {
+												f.delete();
+											}
+										}
+										pasta.delete();
+									}
+								}
+								for (File pasta : pastas) {
+									if (pasta.exists()) {
+										File[] arquivos = pasta.listFiles();
+										if (arquivos != null) {
+											for (File f : arquivos) {
+												f.delete();
+											}
+										}
+										pasta.delete();
+									}
+								}
+								if (!pendentesComprovantes.isEmpty()) {
+									System.out.println("\n\n\n[!] Comprovantes pendentes:");
+									for (Colaborador c : pendentesComprovantes) {
+										System.out.println(c.getNome() + " | " + c.getMatricula());
+									}
+								}
+								if (!pendentesPontos.isEmpty()) {
+									System.out.println("\n\n\n[!] Pontos pendentes:");
+									for (Colaborador c : pendentesPontos) {
+										System.out.println(c.getNome() + " | " + c.getMatricula());
+									}
+								}
+
+								return null;
+							}
+						}
+
+						juntarDocumentos();
+					} else {
+						System.out.println("\n[...] Abortado pelo usuário!");
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -158,12 +168,11 @@ public class App {
 		frame.add(scrollPane, BorderLayout.CENTER);
 		frame.add(progressBar, BorderLayout.SOUTH);
 
-		
 		try {
 			PrintStream printStream = new PrintStream(new OutputStream() {
 				@Override
 				public void write(int b) {
-					
+
 					char c = (char) (b & 0xFF);
 					SwingUtilities.invokeLater(() -> {
 						consoleArea.append(String.valueOf(c));
@@ -180,7 +189,6 @@ public class App {
 		frame.setVisible(true);
 	}
 
-
 	public static void selecionarArquivosEDiretorios() {
 		pastaPontosOri = selecionarDiretorio("Selecione a pasta de PONTOS");
 		pastaComprovantes = selecionarDiretorio("Selecione a pasta de COMPROVANTES");
@@ -188,7 +196,7 @@ public class App {
 	}
 
 	public static File selecionarArquivo(String mensagem) {
-		
+
 		UIManager.put("FileChooser.openDialogTitleText", "Abrir");
 		UIManager.put("FileChooser.saveDialogTitleText", "Salvar");
 		UIManager.put("FileChooser.cancelButtonText", "Cancelar");
@@ -329,83 +337,82 @@ public class App {
 	}
 
 	public static void separaPorPagina() {
-		 System.out.println("\n[...] Separando todos os PDFs da pasta por página!");
+		System.out.println("\n[...] Separando todos os PDFs da pasta por página!");
 
-		    try {
-		       
-		        File pastaOrigem = pastaPontosOri;
-		        File[] arquivos = pastaOrigem.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
+		try {
 
-		        if (arquivos == null || arquivos.length == 0) {
-		            System.out.println("[AVISO] Nenhum arquivo PDF encontrado em: " + pastaOrigem.getAbsolutePath());
-		            return;
-		        }
+			File pastaOrigem = pastaPontosOri;
+			File[] arquivos = pastaOrigem.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
 
-		        
-		        File pastaDestinoGeral = new File(pastaOrigem.getAbsolutePath() + "/separados");
-		        if (!pastaDestinoGeral.exists()) {
-		            pastaDestinoGeral.mkdirs();
-		        }
-		        Integer qtd = 1;
-		        
-		        for (File arquivoPdf : arquivos) {
-		            System.out.println("\n[INFO] Processando: " + arquivoPdf.getName());
+			if (arquivos == null || arquivos.length == 0) {
+				System.out.println("[AVISO] Nenhum arquivo PDF encontrado em: " + pastaOrigem.getAbsolutePath());
+				return;
+			}
 
-		            PdfReader reader = null;
-		            try {
-		                reader = new PdfReader(arquivoPdf.getAbsolutePath());
-		                int totalPages = reader.getNumberOfPages();
+			File pastaDestinoGeral = new File(pastaOrigem.getAbsolutePath() + "/separados");
+			if (!pastaDestinoGeral.exists()) {
+				pastaDestinoGeral.mkdirs();
+			}
+			Integer qtd = 1;
 
-		             
-		                String nomeBase = arquivoPdf.getName().replaceAll("(?i)\\.pdf$", "");
-		                
-		                
-		                for (int i = 1; i <= totalPages; i++) {
-		                    String outputFile = pastaDestinoGeral.getAbsolutePath() + "/pg_" + qtd + ".pdf";
+			for (File arquivoPdf : arquivos) {
+				System.out.println("\n[INFO] Processando: " + arquivoPdf.getName());
 
-		                    Document document = null;
-		                    PdfCopy copy = null;
-		                    try {
-		                        document = new Document();
-		                        copy = new PdfCopy(document, new FileOutputStream(outputFile));
-		                        document.open();
+				PdfReader reader = null;
+				try {
+					reader = new PdfReader(arquivoPdf.getAbsolutePath());
+					int totalPages = reader.getNumberOfPages();
 
-		                        PdfImportedPage page = copy.getImportedPage(reader, i);
-		                        copy.addPage(page);
+					String nomeBase = arquivoPdf.getName().replaceAll("(?i)\\.pdf$", "");
 
-		                        System.out.println("[OK] " + nomeBase + " - Página " + i + " salva.");
-		                        qtd++;
-		                        
-		                    } catch (Exception ex) {
-		                        System.err.println("[ERRO] Falha ao salvar página " + i + " de " + nomeBase + ": " + ex.getMessage());
-		                        ex.printStackTrace();
-		                    } finally {
-		                        if (document != null && document.isOpen()) {
-		                            document.close();
-		                        }
-		                        if (copy != null) {
-		                            copy.close();
-		                        }
-		                    }
-		                }
+					for (int i = 1; i <= totalPages; i++) {
+						String outputFile = pastaDestinoGeral.getAbsolutePath() + "/pg_" + qtd + ".pdf";
 
-		                System.out.println("[SUCESSO] Arquivo " + arquivoPdf.getName() + " dividido em " + totalPages + " páginas.");
+						Document document = null;
+						PdfCopy copy = null;
+						try {
+							document = new Document();
+							copy = new PdfCopy(document, new FileOutputStream(outputFile));
+							document.open();
 
-		            } catch (Exception e) {
-		                System.err.println("[ERRO] Falha ao processar " + arquivoPdf.getName() + ": " + e.getMessage());
-		                e.printStackTrace();
-		            } finally {
-		                if (reader != null) {
-		                    reader.close();
-		                }
-		            }
-		        }
+							PdfImportedPage page = copy.getImportedPage(reader, i);
+							copy.addPage(page);
 
-		        System.out.println("\n[OK] Todos os PDFs foram separados por página com sucesso!");
+							System.out.println("[OK] " + nomeBase + " - Página " + i + " salva.");
+							qtd++;
 
-		    } catch (Exception e) {
-		        e.printStackTrace();
-		    }
+						} catch (Exception ex) {
+							System.err.println(
+									"[ERRO] Falha ao salvar página " + i + " de " + nomeBase + ": " + ex.getMessage());
+							ex.printStackTrace();
+						} finally {
+							if (document != null && document.isOpen()) {
+								document.close();
+							}
+							if (copy != null) {
+								copy.close();
+							}
+						}
+					}
+
+					System.out.println(
+							"[SUCESSO] Arquivo " + arquivoPdf.getName() + " dividido em " + totalPages + " páginas.");
+
+				} catch (Exception e) {
+					System.err.println("[ERRO] Falha ao processar " + arquivoPdf.getName() + ": " + e.getMessage());
+					e.printStackTrace();
+				} finally {
+					if (reader != null) {
+						reader.close();
+					}
+				}
+			}
+
+			System.out.println("\n[OK] Todos os PDFs foram separados por página com sucesso!");
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 	}
 
@@ -690,6 +697,7 @@ public class App {
 		}
 		File pastaOrigem = new File(pastaPontosOri.getAbsolutePath() + "/separados");
 		System.out.println("\n[...] Iniciando Exclusão de arquivos temporários!");
+		System.gc();
 		if (pastaOrigem.exists()) {
 			File[] arquivos = pastaOrigem.listFiles();
 			if (arquivos != null) {
@@ -700,6 +708,17 @@ public class App {
 			pastaOrigem.delete();
 			System.out.println("[OK] Pasta 'separados' excluída com sucesso!");
 		}
+	}
+
+	public static boolean confereStatus() {
+
+		UIManager.put("OptionPane.yesButtonText", "Sim");
+		UIManager.put("OptionPane.noButtonText", "Abortar");
+
+		int opcao = JOptionPane.showConfirmDialog(frame,
+				"Já existe uma compilação executada. Deseja executar mesmo assim?\n                                       (O arquivo será sobreposto)",
+				"Confirmação", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+		return opcao == JOptionPane.YES_OPTION;
 	}
 }
 
